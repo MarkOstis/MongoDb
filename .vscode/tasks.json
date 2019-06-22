@@ -12,6 +12,19 @@
                 "reveal": "silent"
             },
             "problemMatcher": "$msCompile"
-        }
+        },
+        {
+            "label": "Execute",
+            "command": "dotnet",
+            "args": [
+                "./bin/Debug/netcoreapp2.2/${workspaceFolderBasename}.dll"
+            ],
+            "type": "shell",
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        }        
     ]
 }
