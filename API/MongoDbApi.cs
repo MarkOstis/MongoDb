@@ -109,6 +109,73 @@ namespace MONGO_DB_SPACE
             return result;
         }
 
+        public eRESULT ReplaceObj<T>(T obj, string objName)
+        {
+            eRESULT result = eRESULT.ERROR;
+
+            if (_client != null)
+            {
+                var filter = new BsonDocument("$and", new BsonArray
+                {              
+                    new BsonDocument("Name", objName),
+                    new BsonDocument("ObjType", typeof(T).Name)
+                });
+
+                bool isReplaced = replaceObj<T>(obj, filter).GetAwaiter().GetResult();
+                if (isReplaced == true)
+                {
+                    result = eRESULT.SUCCESS;
+                } 
+                else
+                {
+                   result = eRESULT.ERROR; 
+                }
+            }
+            else 
+            {
+                result = eRESULT.ERROR_CONNECT_TO_DB;
+            }
+
+            return result;
+        }
+
+        public eRESULT DeleteObj<T>(string objName)
+        {
+            eRESULT result = eRESULT.ERROR;
+
+            if (_client != null)
+            {
+                var filter = new BsonDocument("$and", new BsonArray
+                {              
+                    new BsonDocument("Name", objName),
+                    new BsonDocument("ObjType", typeof(T).Name)
+                });
+
+                bool isDeleted = deleteObj<T>(filter).GetAwaiter().GetResult();
+                if (isDeleted == true)
+                {
+                    result = eRESULT.SUCCESS;
+                } 
+                else
+                {
+                   result = eRESULT.ERROR; 
+                }
+            }
+            else 
+            {
+                result = eRESULT.ERROR_CONNECT_TO_DB;
+            }
+
+            return result;
+        }
+
+        private async Task insertObj<T>(T obj)
+        {
+            var db = _client.GetDatabase(_settings.dbName);
+            var col = db.GetCollection<T>(_settings.collectionName);        
+
+            await col.InsertOneAsync(obj);
+        }
         private async Task<T> findObj<T>(BsonDocument filter)
         {
             var db = _client.GetDatabase(_settings.dbName);
@@ -124,13 +191,35 @@ namespace MONGO_DB_SPACE
             }
             return obj;
         }
-
-        private async Task insertObj<T>(T obj)
+        private async Task<bool> replaceObj<T>(T obj, BsonDocument filter)
         {
             var db = _client.GetDatabase(_settings.dbName);
             var col = db.GetCollection<T>(_settings.collectionName);        
 
-            await col.InsertOneAsync(obj);
+            ReplaceOneResult result = await col.ReplaceOneAsync(filter, obj);
+            return result.IsAcknowledged;
+        }
+        private async Task<bool> deleteObj<T>(BsonDocument filter)
+        {
+            var db = _client.GetDatabase(_settings.dbName);
+            var col = db.GetCollection<T>(_settings.collectionName);        
+
+            DeleteResult result = await col.DeleteOneAsync(filter);
+            if (result.IsAcknowledged == true)
+            {
+                if (result.DeletedCount == 1) 
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private bool isConnected()
