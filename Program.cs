@@ -57,17 +57,26 @@ namespace MongoDbApi
                 };
 
                 db.InsertObj<Person2>(per2);
+                if (db.DeleteObj<Person2>("Add") == eRESULT.ERROR)
+                {
+                    Console.WriteLine("Can not delete object! No such object");
+                }
 
                 Person per = new Person();
-
-                
 
                 if (db.FindByName<Person>(ref per, "Add") == eRESULT.SUCCESS)
                 {
                     Console.WriteLine("Field already present!");
                     per.Name = "Dan";
                     per.Age = 12;
-
+                    if (db.ReplaceObj<Person>(per, "Add") == eRESULT.SUCCESS)
+                    {
+                        Console.WriteLine("Object were replaced!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error replace object!");                        
+                    }
                     
                 } else {
                     db.InsertObj<Person>(per1);

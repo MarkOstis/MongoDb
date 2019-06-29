@@ -1,0 +1,1 @@
+NetCore project to test NetCore in WSL with MongoDB.
